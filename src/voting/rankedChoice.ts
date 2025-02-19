@@ -89,7 +89,7 @@ function getScoresMethod(
   );
 }
 
-export default class RankedChoiceVoting {
+export class RankedChoiceVoting {
   proposal: { choices: string[] };
   votes: RankedChoiceVote[];
   strategies: Strategy[];

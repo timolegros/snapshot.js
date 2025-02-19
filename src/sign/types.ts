@@ -1,3 +1,8 @@
+import { Web3Provider } from '@ethersproject/providers';
+import { Wallet } from '@ethersproject/wallet';
+import { WalletClient } from 'viem';
+import { Web3Eth } from 'web3-eth';
+
 export interface Space {
   from?: string;
   space: string;
@@ -349,3 +354,50 @@ export const deleteSpaceType = {
     { name: 'timestamp', type: 'uint64' }
   ]
 };
+
+export type Domain = {
+  name?: string;
+  version?: string;
+  chainId?: number;
+  verifyingContract?: `0x${string}`;
+};
+
+export type Providers = Web3Provider | Wallet | WalletClient | Web3Eth;
+
+export type Messages =
+  | Space
+  | Vote
+  | CancelProposal
+  | FlagProposal
+  | Proposal
+  | UpdateProposal
+  | Follow
+  | Unfollow
+  | Subscribe
+  | Unsubscribe
+  | Profile
+  | Alias
+  | DeleteSpace
+  | Statement;
+
+export type MessageTypes =
+  | typeof deleteSpaceType
+  | typeof aliasTypes
+  | typeof statementTypes
+  | typeof spaceTypes
+  | typeof proposalTypes
+  | typeof updateProposalTypes
+  | typeof voteTypes
+  | typeof voteArrayTypes
+  | typeof voteStringTypes
+  | typeof vote2Types
+  | typeof voteArray2Types
+  | typeof voteString2Types
+  | typeof flagProposalTypes
+  | typeof cancelProposalTypes
+  | typeof cancelProposal2Types
+  | typeof followTypes
+  | typeof unfollowTypes
+  | typeof subscribeTypes
+  | typeof unsubscribeTypes
+  | typeof profileTypes;

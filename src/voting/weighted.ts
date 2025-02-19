@@ -12,7 +12,7 @@ export function weightedPower(i, choice, balance): number {
   );
 }
 
-export default class WeightedVoting {
+export class WeightedVoting {
   proposal: { choices: string[] };
   votes: WeightedVote[];
   strategies: Strategy[];

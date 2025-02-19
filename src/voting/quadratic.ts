@@ -30,7 +30,7 @@ function calcReducedQuadraticScores(
   return percentages.map((p) => scoresTotal * p);
 }
 
-export default class QuadraticVoting {
+export class QuadraticVoting {
   proposal: { choices: string[] };
   votes: QuadraticVote[];
   strategies: Strategy[];

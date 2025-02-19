@@ -1,6 +1,4 @@
 import fetch from 'cross-fetch';
-import { Web3Provider } from '@ethersproject/providers';
-import { Wallet } from '@ethersproject/wallet';
 import { getAddress } from '@ethersproject/address';
 import {
   Space,
@@ -36,9 +34,13 @@ import {
   profileTypes,
   aliasTypes,
   deleteSpaceType,
-  statementTypes
+  statementTypes,
+  Providers,
+  Messages,
+  MessageTypes
 } from './types';
 import constants from '../constants.json';
+import { getChainId, signTypedData } from './utils';
 
 const NAME = 'snapshot';
 const VERSION = '0.1.4';
@@ -53,7 +55,7 @@ export const domain: {
   // chainId: 1
 };
 
-export default class Client {
+export class Client {
   readonly address: string;
   readonly options: any;
 
@@ -71,27 +73,46 @@ export default class Client {
     this.options = options;
   }
 
-  async sign(web3: Web3Provider | Wallet, address: string, message, types) {
-    // @ts-ignore
-    const signer = web3?.getSigner ? web3.getSigner() : web3;
+  async sign(
+    provider: Providers,
+    address: string,
+    message: Messages,
+    types: MessageTypes,
+    primaryType: string
+  ) {
     const checksumAddress = getAddress(address);
-    message.from = message.from ? getAddress(message.from) : checksumAddress;
+    if ('from' in message && typeof message.from === 'string')
+      message.from = getAddress(message.from);
+    else message.from = checksumAddress;
     if (!message.timestamp)
       message.timestamp = parseInt((Date.now() / 1e3).toFixed());
 
     const domainData = {
       ...domain
     };
-    // @ts-ignore
-    if (typeof window !== 'undefined' && window.ethereum?.isTrust) {
-      domainData.chainId = (await signer.provider.getNetwork()).chainId;
+    if (
+      typeof window !== 'undefined' &&
+      'ethereum' in window &&
+      typeof window.ethereum === 'object' &&
+      window.ethereum &&
+      'isTrust' in window.ethereum &&
+      window.ethereum?.isTrust
+    ) {
+      domainData.chainId = await getChainId(provider);
     }
-    const data: any = { domain: domainData, types, message };
-    const sig = await signer._signTypedData(domainData, data.types, message);
+    const data = { domain: domainData, types, message };
+    const sig = await signTypedData(
+      provider,
+      checksumAddress,
+      domainData,
+      types,
+      message,
+      primaryType
+    );
     return await this.send({ address: checksumAddress, sig, data });
   }
 
-  async send(envelop) {
+  async send(envelop: Record<string, unknown>) {
     let address = this.address;
     if (envelop.sig === '0x' && this.options.relayerURL)
       address = this.options.relayerURL;
@@ -115,53 +136,68 @@ export default class Client {
     });
   }
 
-  async space(web3: Web3Provider | Wallet, address: string, message: Space) {
-    return await this.sign(web3, address, message, spaceTypes);
+  async space(provider: Providers, address: string, message: Space) {
+    return await this.sign(provider, address, message, spaceTypes, 'Space');
   }
 
-  async proposal(
-    web3: Web3Provider | Wallet,
-    address: string,
-    message: Proposal
-  ) {
+  async proposal(provider: Providers, address: string, message: Proposal) {
     if (!message.discussion) message.discussion = '';
     if (!message.app) message.app = '';
     if (!message.privacy) message.privacy = '';
-    return await this.sign(web3, address, message, proposalTypes);
+    return await this.sign(
+      provider,
+      address,
+      message,
+      proposalTypes,
+      'Proposal'
+    );
   }
 
   async updateProposal(
-    web3: Web3Provider | Wallet,
+    provider: Providers,
     address: string,
     message: UpdateProposal
   ) {
     if (!message.privacy) message.privacy = '';
-    return await this.sign(web3, address, message, updateProposalTypes);
+    return await this.sign(
+      provider,
+      address,
+      message,
+      updateProposalTypes,
+      'UpdateProposal'
+    );
   }
 
   async flagProposal(
-    web3: Web3Provider | Wallet,
+    provider: Providers,
     address: string,
     message: FlagProposal
   ) {
-    return await this.sign(web3, address, message, flagProposalTypes);
+    return await this.sign(
+      provider,
+      address,
+      message,
+      flagProposalTypes,
+      'FlagProposal'
+    );
   }
 
   async cancelProposal(
-    web3: Web3Provider | Wallet,
+    provider: Providers,
     address: string,
     message: CancelProposal
   ) {
     const type2 = message.proposal.startsWith('0x');
     return await this.sign(
-      web3,
+      provider,
       address,
       message,
-      type2 ? cancelProposal2Types : cancelProposalTypes
+      type2 ? cancelProposal2Types : cancelProposalTypes,
+      'CancelProposal'
     );
   }
 
-  async vote(web3: Web3Provider | Wallet, address: string, message: Vote) {
+  async vote(provider: Providers, address: string, message: Vote) {
     const isShutter = message?.privacy === 'shutter';
     if (!message.reason) message.reason = '';
     if (!message.app) message.app = '';
@@ -178,62 +214,78 @@ export default class Client {
     delete message.privacy;
     // @ts-ignore
     delete message.type;
-    return await this.sign(web3, address, message, type);
+    return await this.sign(provider, address, message, type, 'Vote');
   }
 
-  async follow(web3: Web3Provider | Wallet, address: string, message: Follow) {
-    return await this.sign(web3, address, message, followTypes);
+  async follow(provider: Providers, address: string, message: Follow) {
+    return await this.sign(provider, address, message, followTypes, 'Follow');
   }
 
-  async unfollow(
-    web3: Web3Provider | Wallet,
-    address: string,
-    message: Unfollow
-  ) {
-    return await this.sign(web3, address, message, unfollowTypes);
+  async unfollow(provider: Providers, address: string, message: Unfollow) {
+    return await this.sign(
+      provider,
+      address,
+      message,
+      unfollowTypes,
+      'Unfollow'
+    );
   }
 
-  async subscribe(
-    web3: Web3Provider | Wallet,
-    address: string,
-    message: Subscribe
-  ) {
-    return await this.sign(web3, address, message, subscribeTypes);
+  async subscribe(provider: Providers, address: string, message: Subscribe) {
+    return await this.sign(
+      provider,
+      address,
+      message,
+      subscribeTypes,
+      'Subscribe'
+    );
   }
 
   async unsubscribe(
-    web3: Web3Provider | Wallet,
+    provider: Providers,
     address: string,
     message: Unsubscribe
   ) {
-    return await this.sign(web3, address, message, unsubscribeTypes);
+    return await this.sign(
+      provider,
+      address,
+      message,
+      unsubscribeTypes,
+      'Unsubscribe'
+    );
   }
 
-  async profile(
-    web3: Web3Provider | Wallet,
-    address: string,
-    message: Profile
-  ) {
-    return await this.sign(web3, address, message, profileTypes);
+  async profile(provider: Providers, address: string, message: Profile) {
+    return await this.sign(provider, address, message, profileTypes, 'Profile');
   }
 
-  async statement(
-    web3: Web3Provider | Wallet,
-    address: string,
-    message: Statement
-  ) {
-    return await this.sign(web3, address, message, statementTypes);
+  async statement(provider: Providers, address: string, message: Statement) {
+    return await this.sign(
+      provider,
+      address,
+      message,
+      statementTypes,
+      'Statement'
+    );
   }
 
-  async alias(web3: Web3Provider | Wallet, address: string, message: Alias) {
-    return await this.sign(web3, address, message, aliasTypes);
+  async alias(provider: Providers, address: string, message: Alias) {
+    return await this.sign(provider, address, message, aliasTypes, 'Alias');
   }
 
   async deleteSpace(
-    web3: Web3Provider | Wallet,
+    provider: Providers,
     address: string,
     message: DeleteSpace
   ) {
-    return await this.sign(web3, address, message, deleteSpaceType);
+    return await this.sign(
+      provider,
+      address,
+      message,
+      deleteSpaceType,
+      'DeleteSpace'
+    );
   }
 }
+
+export default Client;

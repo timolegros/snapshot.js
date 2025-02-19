@@ -24,7 +24,9 @@
     "cross-fetch": "^3.1.6",
     "json-to-graphql-query": "^2.2.4",
     "lodash.set": "^4.3.2",
-    "starknet": "^5.19.3"
+    "starknet": "^5.19.3",
+    "viem": "^2.23.3",
+    "web3-eth": "^4.11.1"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^18.1.0",

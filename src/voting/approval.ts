@@ -1,6 +1,6 @@
 import { ApprovalVote, Strategy } from './types';
 
-export default class ApprovalVoting {
+export class ApprovalVoting {
   proposal: { choices: string[] };
   votes: ApprovalVote[];
   strategies: Strategy[];
