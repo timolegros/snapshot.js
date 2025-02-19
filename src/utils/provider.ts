@@ -14,7 +14,7 @@ export type ProviderOptions = {
 const DEFAULT_BROVIDER_URL = 'https://rpc.snapshot.org';
 const DEFAULT_TIMEOUT = 25000;
 
-export default function getProvider(
+export function getProvider(
   network,
   {
     broviderUrl = DEFAULT_BROVIDER_URL,

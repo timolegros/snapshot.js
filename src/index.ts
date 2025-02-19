@@ -1,16 +1,22 @@
-import Client712 from './sign';
-import schemas from './schemas';
-import utils from './utils';
-
-export default {
-  Client: Client712,
-  Client712,
-  schemas,
-  utils
-};
+import {
+  ApprovalVoting,
+  QuadraticVoting,
+  RankedChoiceVoting,
+  SingleChoiceVoting,
+  WeightedVoting
+} from './voting';
 
 export * from './sign/types';
 export * from './sign';
 export * as utils from './utils';
+export * from './utils/';
 export * as schemas from './schemas';
-export * as voting from './voting';
+
+export const VoteClasses = {
+  'single-choice': SingleChoiceVoting,
+  approval: ApprovalVoting,
+  quadratic: QuadraticVoting,
+  'ranked-choice': RankedChoiceVoting,
+  weighted: WeightedVoting,
+  basic: SingleChoiceVoting
+};

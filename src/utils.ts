@@ -8,15 +8,9 @@ import { jsonToGraphQLQuery } from 'json-to-graphql-query';
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
 import addErrors from 'ajv-errors';
-import Multicaller from './utils/multicaller';
-import { getSnapshots } from './utils/blockfinder';
-import getProvider from './utils/provider';
-import { signMessage, getBlockNumber } from './utils/web3';
-import { getHash, verify } from './verify';
+import { getProvider } from './utils/provider';
 import gateways from './gateways.json';
 import networks from './networks.json';
-import voting from './voting';
-import getDelegatesBySpace, { SNAPSHOT_SUBGRAPH_URL } from './utils/delegation';
 import { validateAndParseAddress } from 'starknet';
 
 interface Options {
@@ -53,6 +47,10 @@ const scoreApiHeaders = {
 };
 
 const DEFAULT_SCORE_API_URL = 'https://score.snapshot.org';
+
+function inputError(message: string) {
+  return Promise.reject(new Error(message));
+}
 
 function formatScoreAPIUrl(
   url = DEFAULT_SCORE_API_URL,
@@ -717,43 +715,3 @@ export function getFormattedAddress(
 
   throw new Error(`Invalid address: ${address}`);
 }
-
-function inputError(message: string) {
-  return Promise.reject(new Error(message));
-}
-
-export { getDelegatesBySpace, SNAPSHOT_SUBGRAPH_URL };
-
-export default {
-  call,
-  multicall,
-  subgraphRequest,
-  ipfsGet,
-  getUrl,
-  getJSON,
-  sendTransaction,
-  getScores,
-  getVp,
-  validateSchema,
-  getEnsTextRecord,
-  getSpaceUri,
-  getEnsOwner,
-  getSpaceController,
-  getDelegatesBySpace,
-  clone,
-  sleep,
-  getNumberWithOrdinal,
-  voting,
-  getProvider,
-  signMessage,
-  getBlockNumber,
-  Multicaller,
-  getSnapshots,
-  getHash,
-  verify,
-  validate,
-  isStarknetAddress,
-  isEvmAddress,
-  getFormattedAddress,
-  SNAPSHOT_SUBGRAPH_URL
-};

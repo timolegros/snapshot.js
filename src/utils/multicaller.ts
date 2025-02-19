@@ -2,7 +2,7 @@ import { StaticJsonRpcProvider } from '@ethersproject/providers';
 import set from 'lodash.set';
 import { multicall } from '../utils';
 
-export default class Multicaller {
+export class Multicaller {
   public network: string;
   public provider: StaticJsonRpcProvider;
   public abi: any[];
